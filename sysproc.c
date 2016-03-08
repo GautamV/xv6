@@ -6,6 +6,27 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "signal.h"
+
+int 
+sys_sigreg(void)
+{
+
+int *signum;
+char *handler;
+
+if(argint(0, signum) < 0)
+    return -1;
+if(argptr(1, &handler, 8) < 0)
+    return -1;
+
+if (*signum == SIGFPE)
+    proc->handles->sigfpe = (sighandler_t*)handler;
+if (*signum == SIGALRM)
+    proc->handles->sigalrm = (sighandler_t*)handler;
+
+return *signum;
+}
 
 int
 sys_fork(void)

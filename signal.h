@@ -1,8 +1,18 @@
 #ifndef XV6_SIGNAL
-#define XV6_SIGNAL
+#define XV6_SIGNAL 
 
 // You should define anything signal related that needs to be shared between
 // kernel and userspace here
+
+#define SIGFPE 0
+#define SIGALRM 1
+
+typedef void (*sighandler_t)(int);
+int signal(int signum, sighandler_t func);	
+
+typedef struct siginfo_t {
+int signum;
+}siginfo_t;
 
 // At a minimum you must define the signal constants themselves
 // as well as a sighandler_t type.
