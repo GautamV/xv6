@@ -42,7 +42,7 @@ allocproc(void)
     if(p->state == UNUSED)
       goto found;
   release(&ptable.lock);
-  return 0;
+  return 0;	
 
 found:
   p->state = EMBRYO;
@@ -124,6 +124,10 @@ growproc(int n)
   proc->sz = sz;
   switchuvm(proc);
   return 0;
+}
+
+struct proc* getproc (int x){
+return &ptable.proc[x];
 }
 
 // Create a new process copying p as the parent.

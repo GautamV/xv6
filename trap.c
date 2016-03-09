@@ -15,6 +15,7 @@ extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
 
+
 void
 tvinit(void)
 {
@@ -46,6 +47,8 @@ void callUserHandler(uint sighandler)
 void
 trap(struct trapframe *tf)
 {
+int i;
+struct proc *p;
 //cprintf("trap occurs with trapno %d, T_DIVIDE is %d\n", tf->trapno, T_DIVIDE);
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
@@ -83,20 +86,23 @@ trap(struct trapframe *tf)
     return;
   case T_IRQ0 + IRQ_TIMER:
 	
-	if (proc && proc->alarmtime > 0) {
-		proc->alarmcounter++; 
+	for (i = 0; i < 64; i++){
+	p = (struct proc*) getproc(i);	
+	if (p && p->alarmtime > 0) {
+		p->alarmcounter++; 
 		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
-		if (proc->alarmcounter >= proc->alarmtime){
-			proc->alarmtime = 0;
-			proc->alarmcounter = 0;
+		if (p->alarmcounter >= p->alarmtime){
+			p->alarmtime = 0;
+			p->alarmcounter = 0;
 			//callUserHandler(proc->sighandlers[1]);
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 8;  
-	 		proc->tf->eip = (uint) proc->sighandlers[1];
+	 		p->tf->esp -= 8;  
+	 		p->tf->eip = (uint) p->sighandlers[1];
 		}		
+	}
 	}	
 
     if(cpu->id == 0){		

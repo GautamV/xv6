@@ -18,6 +18,7 @@ struct cpu {
   struct proc *proc;           // The currently-running process.
 };
 
+extern struct proc* getproc (int);
 extern struct cpu cpus[NCPU];
 extern int ncpu;
 
