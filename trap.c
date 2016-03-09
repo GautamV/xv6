@@ -32,10 +32,21 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
+void callUserHandler(uint sighandler) 
+{ 
+ char* addr = uva2ka(proc->pgdir, (char*)proc->tf->esp); 
+ if ((proc->tf->esp & 0xFFF) == 0) 
+ panic("esp_offset == 0");  
+ *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip; 
+ proc->tf->esp -= 4;  
+ proc->tf->eip = (uint)sighandler; 
+} 
+
 //PAGEBREAK: 41
 void
 trap(struct trapframe *tf)
 {
+//cprintf("trap occurs with trapno %d, T_DIVIDE is %d\n", tf->trapno, T_DIVIDE);
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
       exit();
@@ -47,6 +58,23 @@ trap(struct trapframe *tf)
   }
 
   switch(tf->trapno){
+  case T_DIVIDE: 
+    cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
+    if (proc->sighandlers[0] >= 0) {
+	uint m = proc->sighandlers[0];
+	callUserHandler(m);
+        return;
+    }
+    
+    cprintf("pid %d %s: trap %d err %d on cpu %d "
+            "eip 0x%x addr 0x%x--kill proc\n",
+            proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
+            rcr2());
+    proc->killed = 1;
+
+    if (proc->killed)
+	exit();
+    return;
   case T_IRQ0 + IRQ_TIMER:
     if(cpu->id == 0){
       acquire(&tickslock);

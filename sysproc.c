@@ -13,22 +13,28 @@ sys_sigreg(void)
 {
 
 int *signum;
-char *handler;
+int *handler;
+
+cprintf("Got to sigreg\n");
 
 if(argint(0, signum) < 0)
     return -1;
-if(argptr(1, &handler, 8) < 0)
+if(argint(1, handler) < 0)
     return -1;
 
-if (*signum == SIGFPE)
-    proc->handles->sigfpe = (sighandler_t*)handler;
-if (*signum == SIGALRM)
-    proc->handles->sigalrm = (sighandler_t*)handler;
+cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
+cprintf("The values of sighandlers[0] and sighandlers[1] are %d and %d \n", proc->sighandlers[0], proc->sighandlers[1]);
+
+if (*signum == SIGFPE){
+    proc->sighandlers[0] = (uint) *handler; cprintf("set sigfpe to %d\n", (uint) *handler); }
+if (*signum == SIGALRM){
+    proc->sighandlers[1] = (uint) *handler; cprintf("set sigalrm to %d\n", (uint) *handler); }
 
 return *signum;
 }
 
 int
+
 sys_fork(void)
 {
   return fork();

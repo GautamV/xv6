@@ -69,7 +69,9 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
-
+	
+  p->sighandlers[0] = -1;
+  p->sighandlers[1] = -1;
   return p;
 }
 
