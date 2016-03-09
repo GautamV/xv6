@@ -14,6 +14,9 @@ int *time;
 
 if(argint(0, time) < 0)
     return -1;
+
+*time = (*time)*1000;
+
 if (proc->alarmtime == 0){
     proc->alarmtime = *time;}
 

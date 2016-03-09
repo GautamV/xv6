@@ -71,6 +71,7 @@ trap(struct trapframe *tf)
 	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
+
     cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
@@ -84,21 +85,21 @@ trap(struct trapframe *tf)
 	
 	if (proc && proc->alarmtime > 0) {
 		proc->alarmcounter++; 
-		cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
+		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
 		if (proc->alarmcounter >= proc->alarmtime){
 			proc->alarmtime = 0;
 			proc->alarmcounter = 0;
 			//callUserHandler(proc->sighandlers[1]);
-			struct siginfo_t info;
+			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		proc->tf->esp -= 8;  
 	 		proc->tf->eip = (uint) proc->sighandlers[1];
-		}
+		}		
 	}	
 
-    if(cpu->id == 0){
+    if(cpu->id == 0){		
       acquire(&tickslock);
       ticks++;
       wakeup(&ticks);
