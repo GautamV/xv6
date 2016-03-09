@@ -88,7 +88,7 @@ atoi(const char *s)
 
   n = 0;
   while('0' <= *s && *s <= '9')
-    n = n*10 + *s++ - '0';
+    n = n*10 + *s++ - '0';	
   return n;
 }
 
@@ -108,5 +108,9 @@ int
 signal(int signum, sighandler_t handler)
 {
   int x = sigreg(signum, handler);
+  return x;
+}
+int alarm(int time){
+  int x = sigalrm(time);
   return x;
 }

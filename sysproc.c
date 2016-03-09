@@ -8,6 +8,20 @@
 #include "proc.h"
 #include "signal.h"
 
+int sys_sigalrm(void)
+{
+int *time; 
+
+if(argint(0, time) < 0)
+    return -1;
+if (proc->alarmtime == 0){
+    proc->alarmtime = *time;}
+
+cprintf("alarmtime was set to %d", *time);
+
+return proc->alarmtime - proc->alarmcounter; 
+}
+
 int 
 sys_sigreg(void)
 {

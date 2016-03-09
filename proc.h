@@ -69,6 +69,8 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint sighandlers[2]; 	       // Registered signal handlers 
+  uint alarmtime;		// Time after which alarm signal should be sent 
+  uint alarmcounter;		// Current time 
 };
 
 // Process memory is laid out contiguously, low addresses first:

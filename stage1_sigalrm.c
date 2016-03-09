@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
 	signal(SIGALRM, handle_signal);
 
-	alarm(1);
+	alarm(10);
 
 	while(!flag && uptime() < start + 2000);
 

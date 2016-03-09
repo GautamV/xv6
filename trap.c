@@ -7,6 +7,7 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "signal.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -34,12 +35,11 @@ idtinit(void)
 
 void callUserHandler(uint sighandler) 
 { 
- char* addr = uva2ka(proc->pgdir, (char*)proc->tf->esp); 
- if ((proc->tf->esp & 0xFFF) == 0) 
- panic("esp_offset == 0");  
- *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip; 
- proc->tf->esp -= 4;  
- proc->tf->eip = (uint)sighandler; 
+// char* addr = uva2ka(proc->pgdir, (char*)proc->tf->esp); 
+// if ((proc->tf->esp & 0xFFF) == 0) 
+// panic("esp_offset == 0");  
+// *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip;
+
 } 
 
 //PAGEBREAK: 41
@@ -61,11 +61,16 @@ trap(struct trapframe *tf)
   case T_DIVIDE: 
     cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
-	uint m = proc->sighandlers[0];
-	callUserHandler(m);
+	//uint m = proc->sighandlers[0];
+	//callUserHandler(m);
+	 struct siginfo_t info;
+			info.signum = SIGFPE;
+			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
+	 		proc->tf->esp -= 8;  
+	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
-    
     cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
@@ -76,6 +81,23 @@ trap(struct trapframe *tf)
 	exit();
     return;
   case T_IRQ0 + IRQ_TIMER:
+	
+	if (proc && proc->alarmtime > 0) {
+		proc->alarmcounter++; 
+		cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
+		if (proc->alarmcounter >= proc->alarmtime){
+			proc->alarmtime = 0;
+			proc->alarmcounter = 0;
+			//callUserHandler(proc->sighandlers[1]);
+			struct siginfo_t info;
+			info.signum = SIGALRM;
+			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
+	 		proc->tf->esp -= 8;  
+	 		proc->tf->eip = (uint) proc->sighandlers[1];
+		}
+	}	
+
     if(cpu->id == 0){
       acquire(&tickslock);
       ticks++;

@@ -72,6 +72,8 @@ found:
 	
   p->sighandlers[0] = -1;
   p->sighandlers[1] = -1;
+  p->alarmtime = 0; 
+  p->alarmcounter = 0; 
   return p;
 }
 

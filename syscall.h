@@ -22,3 +22,4 @@
 #define SYS_close  21
 #define SYS_halt   22
 #define SYS_sigreg 23
+#define SYS_sigalrm  24
