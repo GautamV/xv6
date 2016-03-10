@@ -49,6 +49,7 @@ trap(struct trapframe *tf)
 {
 int i;
 struct proc *p;
+uint oldeip;
 //cprintf("trap occurs with trapno %d, T_DIVIDE is %d\n", tf->trapno, T_DIVIDE);
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
@@ -67,8 +68,12 @@ struct proc *p;
 	//uint m = proc->sighandlers[0];
 	//callUserHandler(m);
 	 struct siginfo_t info;
+			oldeip = proc->tf->eip;
 			info.signum = SIGFPE;
+			
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			*((int*)(proc->tf->esp - 8)) = oldeip;
+
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		proc->tf->esp -= 8;  
 	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
@@ -98,6 +103,8 @@ struct proc *p;
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			oldeip = proc->tf->eip;
+			*((int*)(proc->tf->esp - 8)) = oldeip;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		p->tf->esp -= 8;  
 	 		p->tf->eip = (uint) p->sighandlers[1];
