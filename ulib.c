@@ -104,10 +104,15 @@ memmove(void *vdst, void *vsrc, int n)
   return vdst;
 }
 
+int trampoline (void) {
+printf(1, "hello, i'm the trampoline");
+return 0;
+}
+
 int 
 signal(int signum, sighandler_t handler)
 {
-  int x = sigreg(signum, handler);
+  int x = sigreg(signum, handler, trampoline);
   return x;
 }
 int alarm(int time){

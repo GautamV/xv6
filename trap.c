@@ -42,6 +42,21 @@ void callUserHandler(uint sighandler)
 // *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip;
 
 } 
+/*void 
+trampoline(void)
+{
+__asm__ (
+	"trampoline: \n\t"
+	"movl $0, 4(%%eax)\t #Put 0=SIGFPE on stack\n"
+	"movl %2, 8(%%eax)\t #Put edx on stack\n"
+	"movl %3, 12(%%eax)\t #Put ecx on stack\n"
+	"movl %4, 16(%%eax)\t #Put eax on stack\n"
+	"movl %5, 20(%%eax)\t #Put old eip on stack\n"
+	"addl $24, %%eax\t #Expand stack \n"
+	:  : "r" (old_esp), "r" (restorer), "r" (old_edx), "r" (old_ecx), "r" (old_eax), "r" (old_eip));
+
+}*/
+
 
 //PAGEBREAK: 41
 void
@@ -64,13 +79,17 @@ struct proc *p;
   case T_DIVIDE: 
     cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
-	//uint m = proc->sighandlers[0];
-	//callUserHandler(m);
+	add registers to stack 
+	*((int*)(proc->tf->esp - 4)) = proc->tf->eip; 
+	*((int*)(proc->tf->esp - 8)) = proc->tf->eax;
+	*((int*)(proc->tf->esp - 12)) = proc->tf->ecx;
+	*((int*)(proc->tf->esp - 16)) = proc->tf->edx;
+	//add handler arg to stack and set eip
 	 struct siginfo_t info;
 			info.signum = SIGFPE;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			*((siginfo_t*)(proc->tf->esp - 20)) = info;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 8;  
+	 		proc->tf->esp -= 24;  
 	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
@@ -95,12 +114,13 @@ struct proc *p;
 			p->alarmtime = 0;
 			p->alarmcounter = 0;
 			//callUserHandler(proc->sighandlers[1]);
+			if (p->sighandlers[1] >= 0) {
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		p->tf->esp -= 8;  
-	 		p->tf->eip = (uint) p->sighandlers[1];
+	 		p->tf->eip = (uint) p->sighandlers[1]; }
 		}		
 	}
 	}	

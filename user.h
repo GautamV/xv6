@@ -42,3 +42,5 @@ void* malloc(uint);
 void free(void*);
 int atoi(const char*);
 int signal(int signum, sighandler_t handler);
+int alarm(int time);
+int trampoline(void);
