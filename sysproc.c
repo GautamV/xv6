@@ -44,6 +44,7 @@ if(argint(2, trampoline) < 0)
 
 cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
 cprintf("The values of sighandlers[0] and sighandlers[1] are %d and %d \n", proc->sighandlers[0], proc->sighandlers[1]);
+cprintf("The values of tramp is %d\n", *trampoline);
 
 proc->tramp = (uint) *trampoline;	
 

@@ -72,7 +72,7 @@ struct proc {
   uint sighandlers[2]; 	       // Registered signal handlers 
   uint alarmtime;		// Time after which alarm signal should be sent 
   uint alarmcounter;		// Current time 
-  uint tramp;
+  uint tramp;			// trampoline 
 };
 
 // Process memory is laid out contiguously, low addresses first:

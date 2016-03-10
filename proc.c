@@ -26,6 +26,12 @@ pinit(void)
   initlock(&ptable.lock, "ptable");
 }
 
+void trampoline(void)
+{
+cprintf("in the trampoline");
+__asm__ ("movl 0x8(%ebp),%edx\n\t    movl 0xc(%ebp),%ecx\n\t  movl 0x10(%ebp),%eax\n\t movl %ebp,%esp\n\t"); // update the esp
+}
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -69,7 +75,8 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
-	
+
+  p->tramp = -1;
   p->sighandlers[0] = -1;
   p->sighandlers[1] = -1;
   p->alarmtime = 0; 

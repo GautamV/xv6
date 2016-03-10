@@ -86,11 +86,13 @@ struct proc *p;
 	*((int*)(proc->tf->esp - 16)) = proc->tf->edx;
 	//add handler arg to stack and set eip
 	 struct siginfo_t info;
-			info.signum = SIGFPE;
-			*((siginfo_t*)(proc->tf->esp - 20)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 24;  
-	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
+	info.signum = SIGFPE;
+	*((siginfo_t*)(proc->tf->esp - 20)) = info;
+	*((int*)(proc->tf->esp - 24)) = proc->tramp;
+	cprintf("&info is %d, info is %d, info.signum is %d\n", &info, info, info.signum);
+	cprintf("tramp is %d\n", proc->tramp);
+	 proc->tf->esp -= 24;  
+	 proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
 
@@ -115,11 +117,17 @@ struct proc *p;
 			p->alarmcounter = 0;
 			//callUserHandler(proc->sighandlers[1]);
 			if (p->sighandlers[1] >= 0) {
+			//add registers to stack 
+			*((int*)(proc->tf->esp - 4)) = proc->tf->eip; 
+			*((int*)(proc->tf->esp - 8)) = proc->tf->eax;
+			*((int*)(proc->tf->esp - 12)) = proc->tf->ecx;
+			*((int*)(proc->tf->esp - 16)) = proc->tf->edx;
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			*((siginfo_t*)(proc->tf->esp - 20)) = info;
+			*((int*)(proc->tf->esp - 24)) = proc->tramp;
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		p->tf->esp -= 8;  
+	 		p->tf->esp -= 24;  
 	 		p->tf->eip = (uint) p->sighandlers[1]; }
 		}		
 	}
