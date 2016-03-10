@@ -79,7 +79,7 @@ struct proc *p;
   case T_DIVIDE: 
     cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
-	add registers to stack 
+	//add registers to stack 
 	*((int*)(proc->tf->esp - 4)) = proc->tf->eip; 
 	*((int*)(proc->tf->esp - 8)) = proc->tf->eax;
 	*((int*)(proc->tf->esp - 12)) = proc->tf->ecx;
