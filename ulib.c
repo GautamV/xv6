@@ -4,11 +4,6 @@
 #include "user.h"
 #include "x86.h"
 
-void trampoline(void){
-	//printf(1,In the trampoline\n");
-	__asm__ ("movl 0x8(%ebp),%edx\n\t    movl 0xc(%ebp),%ecx\n\t  movl 0x10(%ebp),%eax\n\t add $0x14,%ebp\n\t movl %ebp,%esp\n\t ret\n\t");
-}
-
 char*
 strcpy(char *s, char *t)
 {
@@ -92,21 +87,7 @@ atoi(const char *s)
   int n;
 
   n = 0;
-  while('0' <= *s && *s <= '9')void trampoline(void){
-	//printf(1,"TRAMPOLINE!!\n");
-__asm__ ("movl 0x8(%ebp),%edx\n\t    movl 0xc(%ebp),%ecx\n\t  movl 0x10(%ebp),%eax\n\t add $0x14,%ebp\n\t movl %ebp,%esp\n\t ret\n\t");
-	//pops off the stack( in the reverse order it was pushed) 
- /*__asm__(
-	"add $8,%esp;"
-	"pop %edx;"
-	"pop %ecx;" 
-	"pop %eax;"
-	"ret" ); */
-	
-//printf(1,"At the end of trampoline\n");
-	//return 0; 
-
-}
+  while('0' <= *s && *s <= '9')
     n = n*10 + *s++ - '0';	
   return n;
 }
