@@ -126,8 +126,20 @@ growproc(int n)
   return 0;
 }
 
-struct proc* getproc (int x){
-return &ptable.proc[x];
+//struct proc* getproc (int x){
+//return &ptable.proc[x];
+//}
+
+//update all process ticks
+void incrementCounter(){ 
+    struct proc *p;
+	for(p= ptable.proc; p< &ptable.proc[NPROC]; p++){
+		if(p){
+		    if(p->alarmtime != 0) {
+		    	p->alarmcounter++; 
+		    }	
+		}	
+	}
 }
 
 // Create a new process copying p as the parent.
@@ -445,7 +457,21 @@ procdump(void)
 {
   static char *states[] = {
   [UNUSED]    "unused",
-  [EMBRYO]    "embryo",
+  [EMBRYO]    "embryo",//struct proc* getproc (int x){
+//return &ptable.proc[x];
+//}
+
+//update all process ticks
+void incrementCounter(){ 
+    struct proc *p;
+	for(p= ptable.proc; p< &ptable.proc[NPROC]; p++){
+		if(p){
+		    if(p->alarmtime != 0) {
+		    	p->alarmcounter++; 
+		    }	
+		}	
+	}
+}
   [SLEEPING]  "sleep ",
   [RUNNABLE]  "runble",
   [RUNNING]   "run   ",
