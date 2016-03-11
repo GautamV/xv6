@@ -457,21 +457,7 @@ procdump(void)
 {
   static char *states[] = {
   [UNUSED]    "unused",
-  [EMBRYO]    "embryo",//struct proc* getproc (int x){
-//return &ptable.proc[x];
-//}
-
-//update all process ticks
-void incrementCounter(){ 
-    struct proc *p;
-	for(p= ptable.proc; p< &ptable.proc[NPROC]; p++){
-		if(p){
-		    if(p->alarmtime != 0) {
-		    	p->alarmcounter++; 
-		    }	
-		}	
-	}
-}
+  [EMBRYO]    "embryo",
   [SLEEPING]  "sleep ",
   [RUNNABLE]  "runble",
   [RUNNING]   "run   ",
