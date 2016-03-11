@@ -34,21 +34,11 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
-void callUserHandler(uint sighandler) 
-{ 
-// char* addr = uva2ka(proc->pgdir, (char*)proc->tf->esp); 
-// if ((proc->tf->esp & 0xFFF) == 0) 
-// panic("esp_offset == 0");  
-// *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip;
-
-} 
-
 //PAGEBREAK: 41
 void
 trap(struct trapframe *tf)
 {
-int i;
-struct proc *p;
+
 //cprintf("trap occurs with trapno %d, T_DIVIDE is %d\n", tf->trapno, T_DIVIDE);
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
@@ -164,18 +154,34 @@ struct proc *p;
     yield();
 
   if(proc && proc->alarmtime>0){
-		proc->alarmcounter++; 
 		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
 		if (proc->alarmcounter >= proc->alarmtime){
+			if(proc->sighandlers[1] == -1){	
+			//cprintf("here 2:\n"); 	
+			cprintf("pid %d %s: trap %d err %d on cpu %d "
+            	"eip 0x%x addr 0x%x--kill proc\n",
+            	proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
+           	 rcr2());
+    		proc->killed = 1; 
+			exit(); 
+			}
 			proc->alarmtime = 0;
 			proc->alarmcounter = 0;
-			//callUserHandler(proc->sighandlers[1]);
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+			uint oldeip = proc->tf->eip;
+			proc->tf->eip = proc->sighandlers[1];
 			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 8;  
-	 		proc->tf->eip = (uint) proc->sighandlers[1];
+
+			*((uint*) (proc->tf->esp - 4)) = oldeip;
+			*((uint*) (proc->tf->esp - 8)) = proc->tf->eax;
+			*((uint*) (proc->tf->esp - 12)) = proc->tf->ecx;
+			*((uint*) (proc->tf->esp - 16)) = proc->tf->edx;
+			*((siginfo_t*)(proc->tf->esp - 20)) = info;
+			
+			*((uint*) (proc->tf->esp - 24)) = proc->tramp;
+			cprintf("\nvalue of trampoline is %d and handler is %d eip is %d\n", proc->tramp,proc->sighandlers[1],proc->tf->eip);
+	 		proc->tf->esp -= 24;  
 		}		
 	}
 

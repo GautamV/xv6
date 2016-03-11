@@ -6,6 +6,7 @@ volatile int flag = 0;
 
 void handle_signal(siginfo_t info)
 {
+	printf(1, "\nhandler!!!!!!!!!!!!!!!!!!\n");
     __asm__ ("movl $0x0,%ecx\n\t");
     flag = 1;
 } 
