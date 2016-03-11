@@ -80,18 +80,21 @@ struct proc *p;
     cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
 	//add registers to stack 
-	*((int*)(proc->tf->esp - 4)) = proc->tf->eip; 
-	*((int*)(proc->tf->esp - 8)) = proc->tf->eax;
-	*((int*)(proc->tf->esp - 12)) = proc->tf->ecx;
-	*((int*)(proc->tf->esp - 16)) = proc->tf->edx;
-	//add handler arg to stack and set eip
-	 struct siginfo_t info;
-	info.signum = SIGFPE;
-	*((siginfo_t*)(proc->tf->esp - 20)) = info;
+	*((int*)(proc->tf->esp - 8)) = proc->tf->eip; 
+	*((int*)(proc->tf->esp - 12)) = proc->tf->eax;
+	*((int*)(proc->tf->esp - 16)) = proc->tf->ecx;
+	*((int*)(proc->tf->esp - 20)) = proc->tf->edx;
+
 	*((int*)(proc->tf->esp - 24)) = proc->tramp;
+
+	//add handler arg to stack and set eip
+	struct siginfo_t info;
+	info.signum = SIGFPE;
+	*((siginfo_t*)(proc->tf->esp - 28)) = info;
+
 	cprintf("&info is %d, info is %d, info.signum is %d\n", &info, info, info.signum);
 	cprintf("tramp is %d\n", proc->tramp);
-	 proc->tf->esp -= 24;  
+	 proc->tf->esp -= 32;  
 	 proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
