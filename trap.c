@@ -164,7 +164,6 @@ struct proc *p;
     yield();
 
   if(proc && proc->alarmtime>0){
-		proc->alarmcounter++; 
 		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
 		if (proc->alarmcounter >= proc->alarmtime){
 			proc->alarmtime = 0;
