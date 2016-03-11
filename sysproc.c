@@ -31,12 +31,15 @@ sys_sigreg(void)
 
 int *signum;
 int *handler;
+uint trampoline;
 
 cprintf("Got to sigreg\n");
 
 if(argint(0, signum) < 0)
     return -1;
 if(argint(1, handler) < 0)
+    return -1;
+if(argint(1, (int*) &handler) < 0)
     return -1;
 
 cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
@@ -46,6 +49,8 @@ if (*signum == SIGFPE){
     proc->sighandlers[0] = (uint) *handler; cprintf("set sigfpe to %d\n", (uint) *handler); }
 if (*signum == SIGALRM){
     proc->sighandlers[1] = (uint) *handler; cprintf("set sigalrm to %d\n", (uint) *handler); }
+
+proc->tramp = trampoline;
 
 return *signum;
 }
