@@ -35,12 +35,18 @@ uint trampoline;
 
 cprintf("Got to sigreg\n");
 
-if(argint(0, signum) < 0)
+if(argint(0, signum) < 0){
+	cprintf("error inputting signum");
     return -1;
-if(argint(1, handler) < 0)
+}
+if(argint(1, handler) < 0){
+	cprintf("error inputting handler");
     return -1;
-if(argint(1, (int*) &handler) < 0)
+}
+if(argint(2, (int*) &trampoline) < 0){
+	cprintf("error inputting trampoline");
     return -1;
+}
 
 cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
 cprintf("The values of sighandlers[0] and sighandlers[1] are %d and %d \n", proc->sighandlers[0], proc->sighandlers[1]);
@@ -50,7 +56,9 @@ if (*signum == SIGFPE){
 if (*signum == SIGALRM){
     proc->sighandlers[1] = (uint) *handler; cprintf("set sigalrm to %d\n", (uint) *handler); }
 
-proc->tramp = trampoline;
+proc->tramp = (uint) trampoline;
+
+cprintf("\n done with signal registering \n");
 
 return *signum;
 }
