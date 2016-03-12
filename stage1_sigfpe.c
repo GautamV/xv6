@@ -8,8 +8,6 @@ void other_function() {
 
 void handle_signal(siginfo_t info)
 {
-	printf(1, "Caught signal %d...\n", info.signum);
-	printf(1, "info.signum is %d and SIGFPE is %d.", info.signum, SIGFPE);
 	if (info.signum == SIGFPE)
 		printf(1, "TEST PASSED\n");
 	else

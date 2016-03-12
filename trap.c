@@ -62,20 +62,18 @@ struct proc *p;
 
   switch(tf->trapno){
   case T_DIVIDE: 
-    cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
 	//uint m = proc->sighandlers[0];
 	//callUserHandler(m);
 	 struct siginfo_t info;
 			info.signum = SIGFPE;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		proc->tf->esp -= 8;  
 	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
 
-    cprintf("pid %d %s: trap %d err %d on cpu %d "
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
             rcr2());
@@ -172,7 +170,7 @@ struct proc *p;
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
+
 	 		proc->tf->esp -= 8;  
 	 		proc->tf->eip = (uint) proc->sighandlers[1];
 		}		

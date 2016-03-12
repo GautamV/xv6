@@ -7,7 +7,6 @@ volatile int flag = 0;
 
 void handle_signal(siginfo_t info)
 {
-	printf(1, "Caught signal %d...\n", info.signum);
 	if (info.signum == SIGALRM)
 		printf(1, "TEST PASSED\n");
 	else
