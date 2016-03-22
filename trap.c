@@ -62,20 +62,18 @@ struct proc *p;
 
   switch(tf->trapno){
   case T_DIVIDE: 
-    cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
 	//uint m = proc->sighandlers[0];
 	//callUserHandler(m);
 	 struct siginfo_t info;
 			info.signum = SIGFPE;
 			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 	 		proc->tf->esp -= 8;  
 	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
         return;
     }
 
-    cprintf("pid %d %s: trap %d err %d on cpu %d "
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
             rcr2());
@@ -85,7 +83,7 @@ struct proc *p;
 	exit();
     return;
   case T_IRQ0 + IRQ_TIMER:
-	
+	/*
 	for (i = 0; i < 64; i++){
 	p = (struct proc*) getproc(i);	
 	if (p && p->alarmtime > 0) {
@@ -103,7 +101,7 @@ struct proc *p;
 	 		p->tf->eip = (uint) p->sighandlers[1];
 		}		
 	}
-	}	
+	}	*/
 
     if(cpu->id == 0){		
       acquire(&tickslock);
@@ -112,6 +110,7 @@ struct proc *p;
       release(&tickslock);
     }
     lapiceoi();
+    incrementCounter();
     break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();
@@ -137,7 +136,7 @@ struct proc *p;
    
   //PAGEBREAK: 13
   default:
-    if(proc == 0 || (tf->cs&3) == 0){
+     if(proc == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
               tf->trapno, cpu->id, tf->eip, rcr2());
@@ -150,7 +149,7 @@ struct proc *p;
             rcr2());
     proc->killed = 1;
   }
-
+  
   // Force process exit if it has been killed and is in user space.
   // (If it is still executing in the kernel, let it keep running 
   // until it gets to the regular system call return.)
@@ -161,6 +160,21 @@ struct proc *p;
   // If interrupts were on while locks held, would need to check nlock.
   if(proc && proc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER)
     yield();
+
+  if(proc && proc->alarmtime>0){
+		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
+		if (proc->alarmcounter >= proc->alarmtime){
+			proc->alarmtime = 0;
+			proc->alarmcounter = 0;
+			//callUserHandler(proc->sighandlers[1]);
+			struct siginfo_t info;			
+			info.signum = SIGALRM;
+			*((siginfo_t*)(proc->tf->esp - 4)) = info;
+
+	 		proc->tf->esp -= 8;  
+	 		proc->tf->eip = (uint) proc->sighandlers[1];
+		}		
+	}
 
   // Check if the process has been killed since we yielded
   if(proc && proc->killed && (tf->cs&3) == DPL_USER)
