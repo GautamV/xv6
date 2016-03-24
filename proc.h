@@ -18,7 +18,8 @@ struct cpu {
   struct proc *proc;           // The currently-running process.
 };
 
-extern struct proc* getproc (int);
+//extern struct proc* getproc (int);
+extern void incrementCounter(void);
 extern struct cpu cpus[NCPU];
 extern int ncpu;
 
@@ -72,6 +73,7 @@ struct proc {
   uint sighandlers[2]; 	       // Registered signal handlers 
   uint alarmtime;		// Time after which alarm signal should be sent 
   uint alarmcounter;		// Current time 
+  uint tramp;				//trampoline function
 };
 
 // Process memory is laid out contiguously, low addresses first:

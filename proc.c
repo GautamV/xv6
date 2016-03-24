@@ -72,6 +72,7 @@ found:
 	
   p->sighandlers[0] = -1;
   p->sighandlers[1] = -1;
+  p->tramp = -1;
   p->alarmtime = 0; 
   p->alarmcounter = 0; 
   return p;
@@ -126,8 +127,20 @@ growproc(int n)
   return 0;
 }
 
-struct proc* getproc (int x){
-return &ptable.proc[x];
+//struct proc* getproc (int x){
+//return &ptable.proc[x];
+//}
+
+//update all process ticks
+void incrementCounter(){ 
+    struct proc *p;
+	for(p= ptable.proc; p< &ptable.proc[NPROC]; p++){
+		if(p){
+		    if(p->alarmtime != 0) {
+		    	p->alarmcounter++; 
+		    }	
+		}	
+	}
 }
 
 // Create a new process copying p as the parent.
