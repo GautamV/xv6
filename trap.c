@@ -34,21 +34,11 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
-void callUserHandler(uint sighandler) 
-{ 
-// char* addr = uva2ka(proc->pgdir, (char*)proc->tf->esp); 
-// if ((proc->tf->esp & 0xFFF) == 0) 
-// panic("esp_offset == 0");  
-// *(int*)(addr + ((proc->tf->esp - 4) & 0xFFF)) = proc->tf->eip;
-
-} 
-
 //PAGEBREAK: 41
 void
 trap(struct trapframe *tf)
 {
-int i;
-struct proc *p;
+
 //cprintf("trap occurs with trapno %d, T_DIVIDE is %d\n", tf->trapno, T_DIVIDE);
   if(tf->trapno == T_SYSCALL){
     if(proc->killed)
@@ -62,16 +52,25 @@ struct proc *p;
 
   switch(tf->trapno){
   case T_DIVIDE: 
-    cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
-	//uint m = proc->sighandlers[0];
-	//callUserHandler(m);
-	 struct siginfo_t info;
-			info.signum = SIGFPE;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 8;  
-	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
+		//uint m = proc->sighandlers[0];
+		//callUserHandler(m);
+		struct siginfo_t info;
+		info.signum = SIGFPE;
+		uint oldeip = proc->tf->eip;
+		
+		proc->tf->eip = proc->sighandlers[0];
+	 		
+	 	*((uint*) (proc->tf->esp - 4)) = oldeip;
+		*((uint*) (proc->tf->esp - 8)) = proc->tf->eax;
+		*((uint*) (proc->tf->esp - 12)) = proc->tf->ecx;
+		*((uint*) (proc->tf->esp - 16)) = proc->tf->edx;
+		*((siginfo_t*)(proc->tf->esp - 20)) = info;
+			
+		*((uint*) (proc->tf->esp - 24)) = proc->tramp;
+		
+	 	proc->tf->esp -= 24;  
+	 		
         return;
     }
 
@@ -85,26 +84,6 @@ struct proc *p;
 	exit();
     return;
   case T_IRQ0 + IRQ_TIMER:
-	
-	for (i = 0; i < 64; i++){
-	p = (struct proc*) getproc(i);	
-	if (p && p->alarmtime > 0) {
-		p->alarmcounter++; 
-		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
-		if (p->alarmcounter >= p->alarmtime){
-			p->alarmtime = 0;
-			p->alarmcounter = 0;
-			//callUserHandler(proc->sighandlers[1]);
-			struct siginfo_t info;			
-			info.signum = SIGALRM;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		p->tf->esp -= 8;  
-	 		p->tf->eip = (uint) p->sighandlers[1];
-		}		
-	}
-	}	
-
     if(cpu->id == 0){		
       acquire(&tickslock);
       ticks++;
@@ -112,6 +91,7 @@ struct proc *p;
       release(&tickslock);
     }
     lapiceoi();
+    incrementCounter();
     break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();
@@ -137,7 +117,7 @@ struct proc *p;
    
   //PAGEBREAK: 13
   default:
-    if(proc == 0 || (tf->cs&3) == 0){
+     if(proc == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
               tf->trapno, cpu->id, tf->eip, rcr2());
@@ -150,7 +130,7 @@ struct proc *p;
             rcr2());
     proc->killed = 1;
   }
-
+  
   // Force process exit if it has been killed and is in user space.
   // (If it is still executing in the kernel, let it keep running 
   // until it gets to the regular system call return.)
@@ -161,6 +141,28 @@ struct proc *p;
   // If interrupts were on while locks held, would need to check nlock.
   if(proc && proc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER)
     yield();
+
+  if(proc && proc->alarmtime>0){
+		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
+		if (proc->alarmcounter >= proc->alarmtime){
+			proc->alarmtime = 0;
+			proc->alarmcounter = 0;
+			struct siginfo_t info;			
+			info.signum = SIGALRM;
+			uint oldeip = proc->tf->eip;
+			proc->tf->eip = proc->sighandlers[1];
+
+			*((uint*) (proc->tf->esp - 4)) = oldeip;
+			*((uint*) (proc->tf->esp - 8)) = proc->tf->eax;
+			*((uint*) (proc->tf->esp - 12)) = proc->tf->ecx;
+			*((uint*) (proc->tf->esp - 16)) = proc->tf->edx;
+			*((siginfo_t*)(proc->tf->esp - 20)) = info;
+			
+			*((uint*) (proc->tf->esp - 24)) = proc->tramp;
+		
+	 		proc->tf->esp -= 24;  
+		}		
+	}
 
   // Check if the process has been killed since we yielded
   if(proc && proc->killed && (tf->cs&3) == DPL_USER)
