@@ -52,16 +52,25 @@ trap(struct trapframe *tf)
 
   switch(tf->trapno){
   case T_DIVIDE: 
-    cprintf("Got to the divide trap - value of sigfpe handler is %d\n", proc->sighandlers[0]);
     if (proc->sighandlers[0] >= 0) {
-	//uint m = proc->sighandlers[0];
-	//callUserHandler(m);
-	 struct siginfo_t info;
-			info.signum = SIGFPE;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		proc->tf->esp -= 8;  
-	 		proc->tf->eip = (uint) proc->sighandlers[0]; 
+		//uint m = proc->sighandlers[0];
+		//callUserHandler(m);
+		struct siginfo_t info;
+		info.signum = SIGFPE;
+		uint oldeip = proc->tf->eip;
+		
+		proc->tf->eip = proc->sighandlers[0];
+	 		
+	 	*((uint*) (proc->tf->esp - 4)) = oldeip;
+		*((uint*) (proc->tf->esp - 8)) = proc->tf->eax;
+		*((uint*) (proc->tf->esp - 12)) = proc->tf->ecx;
+		*((uint*) (proc->tf->esp - 16)) = proc->tf->edx;
+		*((siginfo_t*)(proc->tf->esp - 20)) = info;
+			
+		*((uint*) (proc->tf->esp - 24)) = proc->tramp;
+		
+	 	proc->tf->esp -= 24;  
+	 		
         return;
     }
 
@@ -75,26 +84,6 @@ trap(struct trapframe *tf)
 	exit();
     return;
   case T_IRQ0 + IRQ_TIMER:
-	/*
-	for (i = 0; i < 64; i++){
-	p = (struct proc*) getproc(i);	
-	if (p && p->alarmtime > 0) {
-		p->alarmcounter++; 
-		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
-		if (p->alarmcounter >= p->alarmtime){
-			p->alarmtime = 0;
-			p->alarmcounter = 0;
-			//callUserHandler(proc->sighandlers[1]);
-			struct siginfo_t info;			
-			info.signum = SIGALRM;
-			*((siginfo_t*)(proc->tf->esp - 4)) = info;
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
-	 		p->tf->esp -= 8;  
-	 		p->tf->eip = (uint) p->sighandlers[1];
-		}		
-	}
-	}	*/
-
     if(cpu->id == 0){		
       acquire(&tickslock);
       ticks++;
@@ -156,22 +145,12 @@ trap(struct trapframe *tf)
   if(proc && proc->alarmtime>0){
 		//cprintf("alarmtime is %d, counter is %d", proc->alarmtime, proc->alarmcounter);
 		if (proc->alarmcounter >= proc->alarmtime){
-			if(proc->sighandlers[1] == -1){	
-			//cprintf("here 2:\n"); 	
-			cprintf("pid %d %s: trap %d err %d on cpu %d "
-            	"eip 0x%x addr 0x%x--kill proc\n",
-            	proc->pid, proc->name, tf->trapno, tf->err, cpu->id, tf->eip, 
-           	 rcr2());
-    		proc->killed = 1; 
-			exit(); 
-			}
 			proc->alarmtime = 0;
 			proc->alarmcounter = 0;
 			struct siginfo_t info;			
 			info.signum = SIGALRM;
 			uint oldeip = proc->tf->eip;
 			proc->tf->eip = proc->sighandlers[1];
-			cprintf("&info is %d, info is %d, info.signum is %d", &info, info, info.signum);
 
 			*((uint*) (proc->tf->esp - 4)) = oldeip;
 			*((uint*) (proc->tf->esp - 8)) = proc->tf->eax;
@@ -180,7 +159,7 @@ trap(struct trapframe *tf)
 			*((siginfo_t*)(proc->tf->esp - 20)) = info;
 			
 			*((uint*) (proc->tf->esp - 24)) = proc->tramp;
-			cprintf("\nvalue of trampoline is %d and handler is %d eip is %d\n", proc->tramp,proc->sighandlers[1],proc->tf->eip);
+		
 	 		proc->tf->esp -= 24;  
 		}		
 	}

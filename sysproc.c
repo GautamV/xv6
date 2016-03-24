@@ -20,7 +20,6 @@ if(argint(0, time) < 0)
 if (proc->alarmtime == 0){
     proc->alarmtime = *time;}
 
-cprintf("alarmtime was set to %d", *time);
 
 return proc->alarmtime - proc->alarmcounter; 
 }
@@ -33,7 +32,6 @@ int *signum;
 sighandler_t handler;
 uint trampoline;
 
-cprintf("Got to sigreg\n");
 
 if(argint(0, signum) < 0){
 	cprintf("error inputting signum");
@@ -48,17 +46,15 @@ if(argint(2, (int*) &trampoline) < 0){
     return -1;
 }
 
-cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
-cprintf("The values of sighandlers[0] and sighandlers[1] are %d and %d \n", proc->sighandlers[0], proc->sighandlers[1]);
+//cprintf("The value of SIGFPE is %d, the value of SIGALRM is %d, and the value of signum is %d, and the value of handler is %d.\n", SIGFPE, SIGALRM, *signum, *handler);
+//cprintf("The values of sighandlers[0] and sighandlers[1] are %d and %d \n", proc->sighandlers[0], proc->sighandlers[1]);
 
 if (*signum == SIGFPE){
-    proc->sighandlers[0] = (uint) handler; cprintf("set sigfpe to %d\n", (uint) *handler); }
+    proc->sighandlers[0] = (uint) handler; }
 if (*signum == SIGALRM){
-    proc->sighandlers[1] = (uint) handler; cprintf("set sigalrm to %d\n", (uint) *handler); }
+    proc->sighandlers[1] = (uint) handler; }
 
 proc->tramp = trampoline;
-
-cprintf("\n done with signal registering for %d \n",proc->pid);
 
 return *signum;
 }
