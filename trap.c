@@ -60,6 +60,14 @@ uint oldeip;
 		struct siginfo_t info;
 		info.signum = SIGFPE;
 		uint oldeip = proc->tf->eip;
+
+		if (proc->skip == 1){
+			cprintf("\nsetting the eip to old eip + 4\n");
+			//cprintf("old: %d\n", *((uint*) (proc->tf->esp - 4)));
+			proc->tf->eip = proc->tf->eip + 4;
+			//cprintf("new: %d\n", *((uint*) (proc->tf->esp - 4)));
+			return;
+		}
 		
 		proc->tf->eip = proc->sighandlers[0];
 	 		
@@ -73,13 +81,7 @@ uint oldeip;
 		
 	 	proc->tf->esp -= 24;  
 	 	
-		if (proc->skip == 1){
-			cprintf("\nsetting the eip to eip + 4\n");
-			cprintf("old: %d\n", *((uint*) (proc->tf->esp - 4)));
-			*((uint*) (proc->tf->esp - 4)) = *((uint*) (proc->tf->esp - 4)) + 8;
-			cprintf("new: %d\n", *((uint*) (proc->tf->esp - 4)));
-			
-		}
+		
 				
         return;
     }

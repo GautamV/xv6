@@ -15,12 +15,7 @@ void handle_signal(int signum)
 	//printf(1, "%d\n", traps);
 	if (traps == 10000000){
 		end = uptime();
-		//skip instruction
-		//__asm__ (" addl %eax, 4");
-		printf(1, "Traps Performed: %d\n", traps);
-		printf(1, "Total Elapsed Time: %d ms\n", 10*(end - start));
-		printf(1, "Average Time Per Trap: 0.000%d ms\n", end - start);
-		exit();
+		stop();	
 	}
 }
 
@@ -32,8 +27,8 @@ int main(int argc, char *argv[])
 	int x = 3/0;
 
 	printf(1, "Traps Performed: %d\n", traps);
-	printf(1, "Total Elapsed Time: %d\n", end - start);
-	printf(1, "Average Time Per Trap: %d\n", (end - start)/traps);
+	printf(1, "Total Elapsed Time: %d milliseconds\n", 10*(end - start));
+	printf(1, "Average Time Per Trap: %d nanoseconds\n", end - start);
 
 	exit();
 }
