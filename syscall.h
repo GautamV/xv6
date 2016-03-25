@@ -23,3 +23,4 @@
 #define SYS_halt   22
 #define SYS_sigreg 23
 #define SYS_sigalrm  24
+#define SYS_skip   25

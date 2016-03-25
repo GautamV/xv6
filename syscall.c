@@ -108,6 +108,7 @@ extern int sys_uptime(void);
 extern int sys_halt(void);
 extern int sys_sigreg(void);
 extern int sys_sigalrm(void);
+extern int sys_skip(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -134,6 +135,7 @@ static int (*syscalls[])(void) = {
 [SYS_halt]    sys_halt,
 [SYS_sigreg]  sys_sigreg,
 [SYS_sigalrm]   sys_sigalrm,
+[SYS_skip]    sys_skip,
 };
 
 void

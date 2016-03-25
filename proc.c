@@ -75,6 +75,7 @@ found:
   p->tramp = -1;
   p->alarmtime = 0; 
   p->alarmcounter = 0; 
+  p->skip = 0;
   return p;
 }
 

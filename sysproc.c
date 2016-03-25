@@ -8,6 +8,12 @@
 #include "proc.h"
 #include "signal.h"
 
+int sys_skip(void)
+{
+cprintf("setting skip to 1");
+proc->skip = 1;
+}
+
 int sys_sigalrm(void)
 {
 int *time; 

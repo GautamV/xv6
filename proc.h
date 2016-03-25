@@ -74,6 +74,7 @@ struct proc {
   uint alarmtime;		// Time after which alarm signal should be sent 
   uint alarmcounter;		// Current time 
   uint tramp;				//trampoline function
+  uint skip;
 };
 
 // Process memory is laid out contiguously, low addresses first:
